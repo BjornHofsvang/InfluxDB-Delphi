@@ -36,11 +36,18 @@ type
   private
     FPort: Integer;
     FHost: String;
+    FUsername: String;
+    FPassword: String;
   protected
     function EndPoint: String;
+    function Auth : String;
   public
     property Host: String read FHost write FHost;
     property Port: Integer read FPort write FPort;
+    property Username: String read FUsername write FUsername;
+    property Password: String read FPassword write FPassword;
+
+
 
     function CreateDatabase(DatabaseName: String; Duration: Integer; DurationUnit: TDurationUnit = duDay): Boolean; overload;
     function CreateDatabase(DatabaseName: String; Duration: Integer; out Response: IHTTPResponse; DurationUnit: TDurationUnit = duDay): Boolean; overload;
@@ -74,7 +81,7 @@ var
   LUrl, LStmt: String;
   LUnit: String;
 begin
-  LUrl := EndPoint + '/query';
+  LUrl := EndPoint + '/query' + Auth;
 
   case DurationUnit of
     duWeek: LUnit := 'w';
@@ -98,12 +105,23 @@ begin
   Result := 'http://' + Host + ':' + Port.ToString;
 end;
 
+function TInfluxRequest.Auth : String;
+begin
+  if (Username <> '') then
+  begin
+     Result := '?u=' + Username + '&p=' + Password;
+  end
+  else
+     Result := '';
+end;
+
+
 function TInfluxRequest.Query(Database, QueryString: String): IInfluxResult;
 var
   LUrl: String;
   LResp: IHTTPResponse;
 begin
-  LUrl := EndPoint + '/query';
+  LUrl := EndPoint + '/query' + Auth;
   QueryParams.AddOrSetValue('db', Database);
   QueryParams.AddOrSetValue('q', QueryString);
   LResp := Get(LUrl);
@@ -133,7 +151,7 @@ var
 begin
   Result := '';
 
-  LUrl := EndPoint + '/ping';
+  LUrl := EndPoint + '/ping' + Auth;
   QueryParams.AddOrSetValue('verbose', 'true');
   LResp := Get(LUrl);
 
@@ -155,7 +173,7 @@ var
   LResp: IHTTPResponse;
   LResult: IInfluxResult;
 begin
-  LUrl := EndPoint + '/query';
+  LUrl := EndPoint + '/query' + Auth;
   LStmt := 'SHOW DATABASES';
   Self.QueryParams.AddOrSetValue('q', LStmt);
   LResp := Self.Get(LUrl);
@@ -174,7 +192,7 @@ var
   LResp: IHTTPResponse;
   LResult: IInfluxResult;
 begin
-  LUrl := EndPoint + '/query';
+  LUrl := EndPoint + '/query' + Auth;
   LStmt := 'SHOW MEASUREMENTS ON ' + Database;
   Self.QueryParams.AddOrSetValue('q', LStmt);
   LResp := Self.Get(LUrl);
@@ -198,7 +216,7 @@ function TInfluxRequest.Write(Database, ValueString: String; out Response: IHTTP
 var
   LUrl: String;
 begin
-  LUrl := EndPoint + '/write';
+  LUrl := EndPoint + '/write' + Auth;
   QueryParams.AddOrSetValue('db', Database);
   Response := Post(LUrl, ValueString);
   Result := (Response.StatusCode = 204);

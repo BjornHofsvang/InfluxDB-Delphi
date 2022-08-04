@@ -132,7 +132,9 @@ begin
     FHttp.CustomHeaders[Param.Key] := Param.Value;
 
   if QueryParams.Count > 0 then
+  begin
     Url := Url + IfThen(Pos('?', Url) > 0, '&', '?') + EncodeQueryParams;
+  end;
 
   case FMethod of
     TRequestMethod.GET: Result := FHttp.Get(Url);

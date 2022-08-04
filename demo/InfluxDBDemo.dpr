@@ -1,7 +1,7 @@
 program InfluxDBDemo;
 
 uses
-  FastMM4,
+  //FastMM4,
   Vcl.Forms,
   Demo.Main in 'Demo.Main.pas' {frmMain},
   InfluxDB.Core in '..\source\InfluxDB.Core.pas',
